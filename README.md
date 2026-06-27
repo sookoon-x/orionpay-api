@@ -1,98 +1,168 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🌌 OrionPay Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+AI-Powered Multi-Chain Payment Infrastructure
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+OrionPay Backend is a hybrid backend platform that combines **NestJS** microservices with a **Python AI Engine** to deliver intelligent, secure, and scalable payment infrastructure for modern financial applications.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ✨ Features
 
-## Project setup
+* Multi-chain payment processing
+* Bulk payment execution
+* Voice-initiated transactions
+* AI-powered fraud detection
+* AI price analysis and routing
+* Payment modules marketplace
+* Smart transaction monitoring
+* Wallet and account management
 
-```bash
-$ npm install
+---
+
+## 🏗️ Architecture
+
+```text
+Frontend Applications
+          │
+          ▼
+      NestJS API
+          │
+          ▼
+     Python AI Engine
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## 🛠️ Tech Stack
 
-# watch mode
-$ npm run start:dev
+| Technology      | Purpose                          |
+| --------------- | -------------------------------- |
+| NestJS          | API and business logic           |
+| Python          | AI and machine learning services |
+| FastAPI         | AI service APIs                  |
+| PostgreSQL      | Primary database                 |
+| Redis           | Caching and queues               |
+| Docker          | Containerization                 |
+| Blockchain SDKs | Multi-chain integrations         |
 
-# production mode
-$ npm run start:prod
+---
+
+## 📂 Project Structure
+
+```text
+orionpay-api/
+│
+├── services/                 # Microservices
+│   ├── api/                  # NestJS API service
+│   │   ├── src/              # API source code
+│   │   │   ├── app.controller.ts
+│   │   │   ├── app.service.ts
+│   │   │   ├── app.module.ts
+│   │   │   └── main.ts
+│   │   ├── test/             # API E2E tests
+│   │   ├── dist/             # Compiled API output
+│   │   ├── package.json      # API dependencies
+│   │   ├── tsconfig.json     # TypeScript configuration
+│   │   └── nest-cli.json     # NestJS CLI configuration
+│   │
+│   └── ai/                   # Python AI Engine service
+│       ├── main.py           # FastAPI entry point
+│       ├── models/           # AI/ML models
+│       ├── services/         # AI services (fraud detection, routing)
+│       └── requirements.txt  # Python dependencies
+│
+├── docker/                   # Docker configuration files
+│   ├── api.Dockerfile
+│   └── ai.Dockerfile
+├── docs/                     # Documentation
+├── scripts/                  # Utility scripts
+├── docker-compose.yml        # Docker compose configuration
+├── .env                      # Root environment variables
+├── .env.example              # Example environment variables
+└── README.md
 ```
 
-## Run tests
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* Node.js 20+
+* Python 3.11+
+* Docker
+* Docker Compose
+
+### Installation
 
 ```bash
-# unit tests
-$ npm run test
+git clone <repository-url>
 
-# e2e tests
-$ npm run test:e2e
+cd orionpay-backend
 
-# test coverage
-$ npm run test:cov
+docker-compose up --build
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## ⚙️ Environment Variables
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Create a `.env` file:
+
+```env
+DATABASE_URL=
+REDIS_URL=
+JWT_SECRET=
+OPENAI_API_KEY=
+BLOCKCHAIN_RPC_URL=
+```
+
+---
+
+## 🐳 Running with Docker
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker-compose up
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Run in detached mode:
 
-## Resources
+```bash
+docker-compose up -d
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🧪 Testing
 
-## Support
+```bash
+npm run test
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+npm run test:e2e
+```
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📖 API Documentation
 
-## License
+API documentation is available through Swagger:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```text
+http://localhost:3000/api/docs
+```
+
+---
+
+## 🔒 Security Features
+
+* JWT authentication
+* Rate limiting
+* Fraud detection engine
+* Transaction monitoring
+* Role-based access control
+
+---
+
+## 📄 License
+
+MIT License
