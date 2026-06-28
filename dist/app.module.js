@@ -18,9 +18,11 @@ const wallets_module_1 = require("./modules/wallets/wallets.module");
 const payments_module_1 = require("./modules/payments/payments.module");
 const blockchain_module_1 = require("./modules/blockchain/blockchain.module");
 const ai_module_1 = require("./modules/ai/ai.module");
+const admin_module_1 = require("./modules/admin/admin.module");
 const user_entity_1 = require("./modules/users/entities/user.entity");
 const wallet_entity_1 = require("./modules/wallets/entities/wallet.entity");
 const transaction_entity_1 = require("./modules/payments/entities/transaction.entity");
+const admin_entity_1 = require("./modules/admin/entities/admin.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -37,7 +39,7 @@ exports.AppModule = AppModule = __decorate([
                 username: process.env.DB_USERNAME || 'postgres',
                 password: process.env.DB_PASSWORD || 'postgres',
                 database: process.env.DB_NAME || 'orionpay',
-                entities: [user_entity_1.User, wallet_entity_1.Wallet, transaction_entity_1.Transaction],
+                entities: [user_entity_1.User, wallet_entity_1.Wallet, transaction_entity_1.Transaction, admin_entity_1.Admin],
                 synchronize: process.env.NODE_ENV !== 'production',
                 autoLoadEntities: true,
             }),
@@ -47,6 +49,7 @@ exports.AppModule = AppModule = __decorate([
             payments_module_1.PaymentsModule,
             blockchain_module_1.BlockchainModule,
             ai_module_1.AiModule,
+            admin_module_1.AdminModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

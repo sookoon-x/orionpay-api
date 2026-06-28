@@ -9,9 +9,11 @@ import { WalletsModule } from './modules/wallets/wallets.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import { AiModule } from './modules/ai/ai.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { User } from './modules/users/entities/user.entity';
 import { Wallet } from './modules/wallets/entities/wallet.entity';
 import { Transaction } from './modules/payments/entities/transaction.entity';
+import { Admin } from './modules/admin/entities/admin.entity';
 
 @Module({
   imports: [
@@ -25,7 +27,7 @@ import { Transaction } from './modules/payments/entities/transaction.entity';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_NAME || 'orionpay',
-      entities: [User, Wallet, Transaction],
+      entities: [User, Wallet, Transaction, Admin],
       synchronize: process.env.NODE_ENV !== 'production',
       autoLoadEntities: true,
     }),
@@ -35,6 +37,7 @@ import { Transaction } from './modules/payments/entities/transaction.entity';
     PaymentsModule,
     BlockchainModule,
     AiModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
