@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { WalletConnectDto, GenerateNonceDto } from './dto/wallet-connect.dto';
 import { UserGenerateOtpDto } from './dto/user-generate-otp.dto';
 import { UserVerifyOtpDto } from './dto/user-verify-otp.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -56,5 +58,22 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async cleanupExpired() {
     return this.authService.cleanupExpiredOtps();
+  }
+
+  // Forgot password / password reset endpoints
+  @Post('password/forgot')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.requestPasswordReset(forgotPasswordDto.email);
+  }
+
+  @Post('password/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.otp,
+      resetPasswordDto.newPassword
+    );
   }
 }

@@ -166,12 +166,82 @@ export class AuthService {
   async cleanupExpiredOtps() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+    
     await this.userOtpRepository.delete({
-      createdAt: LessThan(thirtyDaysAgo),
+      createdAt: LessThan(thirtyDaysAgo)
+    });
+  }
+
+  /**
+   * User requests a password reset - creates a password reset OTP request
+   */
+  async requestPasswordReset(email: string): Promise<{ message: string; requestId: string }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // Don't reveal that the user doesn't exist for security
+      return { 
+        message: 'If your email is registered, you will receive a password reset OTP shortly.',
+        requestId: ''
+      };
+    }
+
+    // Invalidate any existing password reset OTPs for this user
+    await this.userOtpRepository.update(
+      { userId: user.id, isPasswordReset: true, isUsed: false },
+      { isUsed: true, status: OtpRequestStatus.EXPIRED }
+    );
+
+    // Create new password reset OTP request
+    const userOtp = new UserOtp();
+    userOtp.userId = user.id;
+    userOtp.isPasswordReset = true;
+    userOtp.status = OtpRequestStatus.PENDING;
+    userOtp.resetToken = uuidv4(); // Generate unique reset token for additional security
+
+    const savedOtp = await this.userOtpRepository.save(userOtp);
+    return { 
+      message: 'If your email is registered, you will receive a password reset OTP shortly.',
+      requestId: savedOtp.id
+    };
+  }
+
+  /**
+   * Verify reset OTP and set new password
+   */
+  async resetPassword(email: string, otp: string, newPassword: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Find a valid password reset OTP
+    const userOtp = await this.userOtpRepository.findOne({
+      where: {
+        userId: user.id,
+        otp: otp,
+        isUsed: false,
+        isPasswordReset: true,
+        status: OtpRequestStatus.PROCESSED,
+        expiresAt: Not(LessThan(new Date()))
+      }
     });
 
-    console.log('[OTP Cron] Cleaned up expired OTP records');
+    if (!userOtp) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Mark OTP as used
+    userOtp.isUsed = true;
+    userOtp.status = OtpRequestStatus.PROCESSED;
+    await this.userOtpRepository.save(userOtp);
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update user's password
+    await this.usersService.updatePassword(user.id, hashedPassword);
+
+    return { message: 'Password has been reset successfully. You can now login with your new password.' };
   }
 
   async signIn(email: string, pass: string): Promise<{ access_token: string }> {
@@ -186,6 +256,7 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, email: user.email };
+    await this.usersService.updateLastLogin(user.id);
     return {
       access_token: await this.jwtService.sign(payload),
     };

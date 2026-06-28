@@ -48,4 +48,8 @@ export class UsersService {
   async updateLastLogin(userId: string): Promise<void> {
     await this.usersRepository.update(userId, { lastLoginAt: new Date() });
   }
+
+  async updatePassword(userId: string, newPassword: string): Promise<void> {
+    await this.usersRepository.update(userId, { password: newPassword });
+  }
 }

@@ -7,6 +7,7 @@ export declare class User {
     lastName: string;
     isActive: boolean;
     createdAt: Date;
+    lastLoginAt: Date;
     walletAddress?: string;
     wallets: Wallet[];
 }

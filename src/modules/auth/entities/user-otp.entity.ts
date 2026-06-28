@@ -35,4 +35,10 @@ export class UserOtp {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @Column({ default: false })
+  isPasswordReset: boolean;
+
+  @Column({ nullable: true })
+  resetToken: string;
 }

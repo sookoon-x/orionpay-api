@@ -23,6 +23,8 @@ const roles_decorator_1 = require("./decorators/roles.decorator");
 const create_admin_dto_1 = require("./dto/create-admin.dto");
 const update_admin_dto_1 = require("./dto/update-admin.dto");
 const admin_login_dto_1 = require("./dto/admin-login.dto");
+const generate_otp_dto_1 = require("./dto/generate-otp.dto");
+const verify_otp_dto_1 = require("./dto/verify-otp.dto");
 const admin_entity_1 = require("./entities/admin.entity");
 const user_entity_1 = require("../users/entities/user.entity");
 const transaction_entity_1 = require("../payments/entities/transaction.entity");
@@ -37,6 +39,12 @@ let AdminController = class AdminController {
     }
     login(adminLoginDto) {
         return this.adminService.login(adminLoginDto);
+    }
+    generateOtp(generateOtpDto) {
+        return this.adminService.generateOtp(generateOtpDto.email);
+    }
+    verifyOtp(verifyOtpDto) {
+        return this.adminService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
     }
     create(createAdminDto) {
         return this.adminService.create(createAdminDto);
@@ -75,6 +83,22 @@ __decorate([
     __metadata("design:paramtypes", [admin_login_dto_1.AdminLoginDto]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('otp/generate'),
+    (0, roles_decorator_1.Roles)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [generate_otp_dto_1.GenerateOtpDto]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "generateOtp", null);
+__decorate([
+    (0, common_1.Post)('otp/verify'),
+    (0, roles_decorator_1.Roles)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [verify_otp_dto_1.VerifyOtpDto]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "verifyOtp", null);
 __decorate([
     (0, common_1.Post)('admins'),
     (0, roles_decorator_1.Roles)(admin_entity_1.AdminRole.SUPER_ADMIN),

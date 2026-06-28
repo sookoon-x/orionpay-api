@@ -25,8 +25,9 @@ let Admin = class Admin {
     lastName;
     role;
     isActive;
-    createdAt;
     lastLoginAt;
+    createdAt;
+    updatedAt;
 };
 exports.Admin = Admin;
 __decorate([
@@ -62,13 +63,17 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Admin.prototype, "isActive", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], Admin.prototype, "lastLoginAt", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
 ], Admin.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
-], Admin.prototype, "lastLoginAt", void 0);
+], Admin.prototype, "updatedAt", void 0);
 exports.Admin = Admin = __decorate([
     (0, typeorm_1.Entity)()
 ], Admin);

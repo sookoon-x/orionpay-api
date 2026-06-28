@@ -1,13 +1,23 @@
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Admin } from './entities/admin.entity';
+import { AdminOtp } from './entities/admin-otp.entity';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminLoginDto } from './dto/admin-login.dto';
 export declare class AdminService {
     private readonly adminRepository;
+    private readonly adminOtpRepository;
     private readonly jwtService;
-    constructor(adminRepository: Repository<Admin>, jwtService: JwtService);
+    constructor(adminRepository: Repository<Admin>, adminOtpRepository: Repository<AdminOtp>, jwtService: JwtService);
+    generateOtp(email: string): Promise<{
+        message: string;
+        otp?: string;
+    }>;
+    verifyOtp(email: string, otp: string): Promise<{
+        accessToken: string;
+        admin: Omit<Admin, 'password'>;
+    }>;
     create(createAdminDto: CreateAdminDto): Promise<Omit<Admin, 'password'>>;
     login(adminLoginDto: AdminLoginDto): Promise<{
         accessToken: string;

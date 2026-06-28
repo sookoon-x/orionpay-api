@@ -13,6 +13,7 @@ const jwt_1 = require("@nestjs/jwt");
 const admin_service_1 = require("./admin.service");
 const admin_controller_1 = require("./admin.controller");
 const admin_entity_1 = require("./entities/admin.entity");
+const admin_otp_entity_1 = require("./entities/admin-otp.entity");
 const user_entity_1 = require("../users/entities/user.entity");
 const transaction_entity_1 = require("../payments/entities/transaction.entity");
 const admin_guard_1 = require("./guards/admin.guard");
@@ -23,7 +24,7 @@ exports.AdminModule = AdminModule;
 exports.AdminModule = AdminModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([admin_entity_1.Admin, user_entity_1.User, transaction_entity_1.Transaction]),
+            typeorm_1.TypeOrmModule.forFeature([admin_entity_1.Admin, admin_otp_entity_1.AdminOtp, user_entity_1.User, transaction_entity_1.Transaction]),
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_SECRET || 'your-secret-key',
                 signOptions: { expiresIn: '1d' },
