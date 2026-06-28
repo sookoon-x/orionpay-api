@@ -19,17 +19,23 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
+  async findByWalletAddress(walletAddress: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ walletAddress: walletAddress.toLowerCase() });
+  }
+
   async create(userData: {
     email: string;
     password: string;
     firstName: string;
     lastName: string;
+    walletAddress?: string;
   }): Promise<User> {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     
     const user = this.usersRepository.create({
       ...userData,
       password: hashedPassword,
+      walletAddress: userData.walletAddress?.toLowerCase(),
     });
     
     return this.usersRepository.save(user);
