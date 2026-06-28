@@ -11,6 +11,7 @@ export declare class Admin {
     lastName: string;
     role: AdminRole;
     isActive: boolean;
+    lastLoginAt: Date;
     createdAt: Date;
-    lastLoginAt?: Date;
+    updatedAt: Date;
 }

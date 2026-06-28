@@ -51,13 +51,70 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
+const crypto_1 = require("crypto");
 const admin_entity_1 = require("./entities/admin.entity");
+const admin_otp_entity_1 = require("./entities/admin-otp.entity");
 let AdminService = class AdminService {
     adminRepository;
+    adminOtpRepository;
     jwtService;
-    constructor(adminRepository, jwtService) {
+    constructor(adminRepository, adminOtpRepository, jwtService) {
         this.adminRepository = adminRepository;
+        this.adminOtpRepository = adminOtpRepository;
         this.jwtService = jwtService;
+    }
+    async generateOtp(email) {
+        const admin = await this.adminRepository.findOne({ where: { email } });
+        if (!admin) {
+            throw new common_1.NotFoundException('Admin not found');
+        }
+        if (!admin.isActive) {
+            throw new common_1.UnauthorizedException('Admin account is deactivated');
+        }
+        await this.adminOtpRepository.update({ adminId: admin.id, isUsed: false }, { isUsed: true });
+        const otp = (0, crypto_1.randomInt)(100000, 999999).toString();
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+        const adminOtp = this.adminOtpRepository.create({
+            otp,
+            adminId: admin.id,
+            expiresAt,
+            isUsed: false,
+        });
+        await this.adminOtpRepository.save(adminOtp);
+        if (process.env.NODE_ENV === 'development') {
+            return { message: 'OTP generated successfully', otp };
+        }
+        return { message: 'OTP sent to your registered email' };
+    }
+    async verifyOtp(email, otp) {
+        const admin = await this.adminRepository.findOne({ where: { email } });
+        if (!admin) {
+            throw new common_1.UnauthorizedException('Invalid credentials');
+        }
+        if (!admin.isActive) {
+            throw new common_1.UnauthorizedException('Admin account is deactivated');
+        }
+        const validOtp = await this.adminOtpRepository.findOne({
+            where: {
+                adminId: admin.id,
+                otp,
+                isUsed: false,
+            },
+        });
+        if (!validOtp) {
+            throw new common_1.UnauthorizedException('Invalid or expired OTP');
+        }
+        if (new Date() > validOtp.expiresAt) {
+            await this.adminOtpRepository.update(validOtp.id, { isUsed: true });
+            throw new common_1.UnauthorizedException('OTP has expired');
+        }
+        await this.adminOtpRepository.update(validOtp.id, { isUsed: true });
+        await this.adminRepository.update(admin.id, { lastLoginAt: new Date() });
+        const payload = { sub: admin.id, email: admin.email, role: admin.role, isAdmin: true };
+        const accessToken = this.jwtService.sign(payload);
+        const { password, ...result } = admin;
+        return { accessToken, admin: result };
     }
     async create(createAdminDto) {
         const existingAdmin = await this.adminRepository.findOne({
@@ -163,7 +220,9 @@ exports.AdminService = AdminService;
 exports.AdminService = AdminService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(admin_entity_1.Admin)),
+    __param(1, (0, typeorm_1.InjectRepository)(admin_otp_entity_1.AdminOtp)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         jwt_1.JwtService])
 ], AdminService);
 //# sourceMappingURL=admin.service.js.map

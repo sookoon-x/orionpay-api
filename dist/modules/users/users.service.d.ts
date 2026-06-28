@@ -14,4 +14,6 @@ export declare class UsersService {
         walletAddress?: string;
     }): Promise<User>;
     findAll(): Promise<User[]>;
+    updateLastLogin(userId: string): Promise<void>;
+    updatePassword(userId: string, newPassword: string): Promise<void>;
 }

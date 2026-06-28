@@ -77,6 +77,12 @@ let UsersService = class UsersService {
     async findAll() {
         return this.usersRepository.find({ relations: ['wallets'] });
     }
+    async updateLastLogin(userId) {
+        await this.usersRepository.update(userId, { lastLoginAt: new Date() });
+    }
+    async updatePassword(userId, newPassword) {
+        await this.usersRepository.update(userId, { password: newPassword });
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
