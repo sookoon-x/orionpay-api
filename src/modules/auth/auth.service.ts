@@ -1,18 +1,178 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Not, LessThan } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { UsersService } from '../users/users.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
+import { UserOtp } from './entities/user-otp.entity';
+import { OtpRequestStatus } from './enums/otp-request-status.enum';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import * as crypto from 'crypto';
+import { randomInt, randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private blockchainService: BlockchainService
+    private blockchainService: BlockchainService,
+    @InjectRepository(UserOtp)
+    private readonly userOtpRepository: Repository<UserOtp>,
   ) {}
+
+  /**
+   * User requests an OTP - creates a pending request
+   * OTP will be processed and sent by the cron job
+   */
+  async requestUserOtp(email: string): Promise<{ message: string; requestId: string }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is deactivated');
+    }
+
+    // Create pending OTP request
+    const userOtp = this.userOtpRepository.create({
+      userId: user.id,
+      status: OtpRequestStatus.PENDING,
+    });
+
+    await this.userOtpRepository.save(userOtp);
+    return { 
+      message: 'OTP request submitted. You will receive your OTP shortly.',
+      requestId: userOtp.id
+    };
+  }
+
+  /**
+   * Verify user's OTP - works after cron job has processed the request and set the OTP
+   */
+  async verifyUserOtp(email: string, otp: string): Promise<{ accessToken: string; user: any }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is deactivated');
+    }
+
+    // Find valid OTP that has been processed
+    const validOtp = await this.userOtpRepository.findOne({
+      where: {
+        userId: user.id,
+        otp,
+        isUsed: false,
+        status: OtpRequestStatus.PROCESSED,
+      },
+    });
+
+    if (!validOtp) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Check if OTP has expired
+    if (new Date() > validOtp.expiresAt) {
+      await this.userOtpRepository.update(validOtp.id, { 
+        isUsed: true,
+        status: OtpRequestStatus.EXPIRED 
+      });
+      throw new UnauthorizedException('OTP has expired');
+    }
+
+    // Mark OTP as used
+    await this.userOtpRepository.update(validOtp.id, { isUsed: true });
+
+    // Update last login timestamp
+    await this.usersService.updateLastLogin(user.id);
+
+    // Generate JWT
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
+
+    const { password, ...result } = user;
+    return { accessToken, user: result };
+  }
+
+  /**
+   * Cron job that runs every 30 seconds to process pending OTP requests
+   * Generates OTPs and marks them as ready for use
+   * In production, this would also send the OTP via email/SMS
+   */
+  @Cron(CronExpression.EVERY_30_SECONDS)
+  async processPendingOtpRequests() {
+    const pendingOtps = await this.userOtpRepository.find({
+      where: { status: OtpRequestStatus.PENDING },
+      relations: ['user'],
+    });
+
+    if (pendingOtps.length === 0) {
+      return;
+    }
+
+    console.log(`[OTP Cron] Processing ${pendingOtps.length} pending OTP requests`);
+
+    for (const pendingOtp of pendingOtps) {
+      try {
+        // Mark as processing
+        await this.userOtpRepository.update(pendingOtp.id, {
+          status: OtpRequestStatus.PROCESSING,
+        });
+
+        // Invalidate any existing unused OTPs for this user
+        await this.userOtpRepository.update(
+          { userId: pendingOtp.userId, isUsed: false, id: Not(pendingOtp.id) },
+          { isUsed: true, status: OtpRequestStatus.EXPIRED }
+        );
+
+        // Generate 6-digit OTP
+        const otp = randomInt(100000, 999999).toString();
+        
+        // Set expiration to 15 minutes from now
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+        // Update the OTP record with generated values
+        await this.userOtpRepository.update(pendingOtp.id, {
+          otp,
+          expiresAt,
+          isUsed: false,
+          status: OtpRequestStatus.PROCESSED,
+          processedAt: new Date(),
+        });
+
+        // In a real production environment, you would send the OTP here:
+        // await this.emailService.sendOtp(pendingOtp.user.email, otp);
+        // await this.smsService.sendOtp(pendingOtp.user.phone, otp);
+        console.log(`[OTP Cron] Generated OTP ${otp} for user ${pendingOtp.user.email}`);
+
+      } catch (error) {
+        console.error(`[OTP Cron] Failed to process OTP request ${pendingOtp.id}:`, error);
+        await this.userOtpRepository.update(pendingOtp.id, {
+          status: OtpRequestStatus.FAILED,
+        });
+      }
+    }
+  }
+
+  /**
+   * Daily cron job to clean up old expired OTPs
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async cleanupExpiredOtps() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    await this.userOtpRepository.delete({
+      createdAt: LessThan(thirtyDaysAgo),
+    });
+
+    console.log('[OTP Cron] Cleaned up expired OTP records');
+  }
 
   async signIn(email: string, pass: string): Promise<{ access_token: string }> {
     const user = await this.usersService.findByEmail(email);
@@ -107,7 +267,7 @@ export class AuthService {
 
     if (!user) {
       // Create new user with chain-specific wallet address
-      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const randomPassword = randomBytes(32).toString('hex');
       user = await this.usersService.create({
         email: `${userIdentifier}@wallet.local`,
         password: randomPassword,
