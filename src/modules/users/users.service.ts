@@ -44,4 +44,8 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     return this.usersRepository.find({ relations: ['wallets'] });
   }
+
+  async updateLastLogin(userId: string): Promise<void> {
+    await this.usersRepository.update(userId, { lastLoginAt: new Date() });
+  }
 }

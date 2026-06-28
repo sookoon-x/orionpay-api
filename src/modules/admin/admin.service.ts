@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomInt } from 'crypto';
 import { Admin, AdminRole } from './entities/admin.entity';
+import { AdminOtp } from './entities/admin-otp.entity';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminLoginDto } from './dto/admin-login.dto';
@@ -13,8 +15,99 @@ export class AdminService {
   constructor(
     @InjectRepository(Admin)
     private readonly adminRepository: Repository<Admin>,
+    @InjectRepository(AdminOtp)
+    private readonly adminOtpRepository: Repository<AdminOtp>,
     private readonly jwtService: JwtService,
   ) {}
+
+  /**
+   * Generate a 6-digit one-time password for admin login
+   * OTP expires after 15 minutes and can only be used once
+   */
+  async generateOtp(email: string): Promise<{ message: string; otp?: string }> {
+    const admin = await this.adminRepository.findOne({ where: { email } });
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+
+    if (!admin.isActive) {
+      throw new UnauthorizedException('Admin account is deactivated');
+    }
+
+    // Invalidate any existing unused OTPs for this admin
+    await this.adminOtpRepository.update(
+      { adminId: admin.id, isUsed: false },
+      { isUsed: true }
+    );
+
+    // Generate 6-digit OTP
+    const otp = randomInt(100000, 999999).toString();
+    
+    // Set expiration to 15 minutes from now
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    const adminOtp = this.adminOtpRepository.create({
+      otp,
+      adminId: admin.id,
+      expiresAt,
+      isUsed: false,
+    });
+
+    await this.adminOtpRepository.save(adminOtp);
+
+    // In production, you would send this via email/SMS, for development we return it
+    if (process.env.NODE_ENV === 'development') {
+      return { message: 'OTP generated successfully', otp };
+    }
+    return { message: 'OTP sent to your registered email' };
+  }
+
+  /**
+   * Verify OTP and issue JWT token if valid
+   */
+  async verifyOtp(email: string, otp: string): Promise<{ accessToken: string; admin: Omit<Admin, 'password'> }> {
+    const admin = await this.adminRepository.findOne({ where: { email } });
+    if (!admin) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!admin.isActive) {
+      throw new UnauthorizedException('Admin account is deactivated');
+    }
+
+    // Find valid OTP
+    const validOtp = await this.adminOtpRepository.findOne({
+      where: {
+        adminId: admin.id,
+        otp,
+        isUsed: false,
+      },
+    });
+
+    if (!validOtp) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Check if OTP has expired
+    if (new Date() > validOtp.expiresAt) {
+      await this.adminOtpRepository.update(validOtp.id, { isUsed: true });
+      throw new UnauthorizedException('OTP has expired');
+    }
+
+    // Mark OTP as used
+    await this.adminOtpRepository.update(validOtp.id, { isUsed: true });
+
+    // Update last login timestamp
+    await this.adminRepository.update(admin.id, { lastLoginAt: new Date() });
+
+    // Generate JWT
+    const payload = { sub: admin.id, email: admin.email, role: admin.role, isAdmin: true };
+    const accessToken = this.jwtService.sign(payload);
+
+    const { password, ...result } = admin;
+    return { accessToken, admin: result };
+  }
 
   async create(createAdminDto: CreateAdminDto): Promise<Omit<Admin, 'password'>> {
     const existingAdmin = await this.adminRepository.findOne({

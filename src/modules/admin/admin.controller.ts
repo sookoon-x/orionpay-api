@@ -17,6 +17,8 @@ import { Roles } from './decorators/roles.decorator';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminLoginDto } from './dto/admin-login.dto';
+import { GenerateOtpDto } from './dto/generate-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { AdminRole } from './entities/admin.entity';
 import { User } from '../users/entities/user.entity';
 import { Transaction } from '../payments/entities/transaction.entity';
@@ -36,6 +38,18 @@ export class AdminController {
   @Roles() // No auth required for login
   login(@Body() adminLoginDto: AdminLoginDto) {
     return this.adminService.login(adminLoginDto);
+  }
+
+  @Post('otp/generate')
+  @Roles() // No auth required to request OTP
+  generateOtp(@Body() generateOtpDto: GenerateOtpDto) {
+    return this.adminService.generateOtp(generateOtpDto.email);
+  }
+
+  @Post('otp/verify')
+  @Roles() // No auth required to verify OTP
+  verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return this.adminService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
   }
 
   @Post('admins')
