@@ -5,11 +5,13 @@ export declare class UsersService {
     constructor(usersRepository: Repository<User>);
     findByEmail(email: string): Promise<User | null>;
     findById(id: string): Promise<User | null>;
+    findByWalletAddress(walletAddress: string): Promise<User | null>;
     create(userData: {
         email: string;
         password: string;
         firstName: string;
         lastName: string;
+        walletAddress?: string;
     }): Promise<User>;
     findAll(): Promise<User[]>;
 }

@@ -14,6 +14,7 @@ export declare class UsersController {
         lastName: string;
         isActive: boolean;
         createdAt: Date;
+        walletAddress?: string;
         wallets: import("../wallets/entities/wallet.entity").Wallet[];
     }>;
     getProfile(req: any): any;
@@ -24,6 +25,7 @@ export declare class UsersController {
         lastName: string;
         isActive: boolean;
         createdAt: Date;
+        walletAddress?: string;
         wallets: import("../wallets/entities/wallet.entity").Wallet[];
     }[]>;
 }

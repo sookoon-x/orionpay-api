@@ -68,10 +68,9 @@ export class PaymentsService {
     try {
       const txHash = await this.blockchainService.sendTransaction(
         routingResult.optimal_route.chain,
-        fromWallet.address,
+        '', // In production, retrieve private key securely from vault,
         toAddress,
-        amount,
-        '' // In production, retrieve private key securely from vault
+        amount
       );
       
       savedTx.txHash = txHash;

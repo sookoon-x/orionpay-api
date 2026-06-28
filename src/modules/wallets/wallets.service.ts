@@ -14,7 +14,7 @@ export class WalletsService {
 
   async createWallet(userId: string, chain: string, currency: string): Promise<Wallet> {
     // Generate new wallet address via blockchain service
-    const address = await this.blockchainService.generateAddress(chain);
+    const { address } = await this.blockchainService.generateAddress(chain);
     
     const wallet = this.walletsRepository.create({
       address,

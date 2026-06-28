@@ -20,6 +20,7 @@ let User = class User {
     lastName;
     isActive;
     createdAt;
+    walletAddress;
     wallets;
 };
 exports.User = User;
@@ -51,6 +52,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ unique: true, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "walletAddress", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => wallet_entity_1.Wallet, wallet => wallet.user),
     __metadata("design:type", Array)

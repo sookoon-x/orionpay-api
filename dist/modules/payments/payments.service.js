@@ -65,7 +65,7 @@ let PaymentsService = class PaymentsService {
         });
         const savedTx = await this.transactionsRepository.save(transaction);
         try {
-            const txHash = await this.blockchainService.sendTransaction(routingResult.optimal_route.chain, fromWallet.address, toAddress, amount, '');
+            const txHash = await this.blockchainService.sendTransaction(routingResult.optimal_route.chain, '', toAddress, amount);
             savedTx.txHash = txHash;
             savedTx.status = transaction_entity_1.TransactionStatus.CONFIRMED;
             savedTx.confirmedAt = new Date();

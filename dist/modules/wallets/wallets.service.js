@@ -26,7 +26,7 @@ let WalletsService = class WalletsService {
         this.blockchainService = blockchainService;
     }
     async createWallet(userId, chain, currency) {
-        const address = await this.blockchainService.generateAddress(chain);
+        const { address } = await this.blockchainService.generateAddress(chain);
         const wallet = this.walletsRepository.create({
             address,
             chain,

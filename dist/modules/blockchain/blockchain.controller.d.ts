@@ -3,6 +3,9 @@ export declare class BlockchainController {
     private blockchainService;
     constructor(blockchainService: BlockchainService);
     getSupportedChains(): {
-        chains: string[];
+        chains: {
+            chain: string;
+            type: string;
+        }[];
     };
 }
